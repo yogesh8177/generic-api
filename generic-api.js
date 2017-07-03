@@ -86,7 +86,7 @@ var self = module.exports.Resource = {
 			var action = '';
 			switch(req.method.toLowerCase()){
 				case 'get':
-					action = getDBActions[req.body.action]; /* req.body.action will be integer value */
+					
 				break;
 
 				case 'post':
@@ -126,6 +126,63 @@ function ruleValidation(rule, param){
 	}
 
 	return error;
+}
+
+/* Database calls */
+
+function getWithoutParams(args, db, callback){
+	
+}
+
+// This function is called when there is already atleast single key in object
+function getWithParams(args, db, callback){
+	var query = createQuery(args.params);
+	var call = Object.keys(args.params).length > 1 ? 'find' : 'findOne';
+	db[model][call](query, (err, success) => {
+		if(err)
+			return callback(err);
+		callback(null, success);
+	});
+	connsole.log(query);
+}
+
+function createQuery(params, operator){
+
+	/* If we have more than one param*/
+	var query = {};
+	var totalKeys = Object.keys(params).length;
+
+	if(totalKeys > 1){	
+		switch(operator){
+			case 'and':
+				/* create query object for and operator */
+				query['$and'] = [];
+				for(var key in params){
+					query['$and'].push({[key] : params[key]});
+				}
+
+			break;
+
+			case 'or':
+				query['$or'] = [];
+				for(var key in params){
+					query['$or'].push({[key] : params[key]});
+				}
+			break;
+
+			default:
+
+			break;
+		}
+	}else{
+		// For only single key
+		for(var key in params){
+			query[key] = params[key];
+		}
+		
+	}
+	return query;
+	console.log(query);
 }
 
 
