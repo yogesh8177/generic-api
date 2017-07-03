@@ -56,7 +56,7 @@ var self = module.exports.Resource = {
 		var errors = [];
 
 		for(var param in params){
-			var rules = paramsRulesList[param].rules; // change access method depending upon datat structure of paramsRulesList
+			var rules = paramsRulesList[param].rules; // change access method depending upon data structure of paramsRulesList
 
 			rules.forEach((rule) => {
 				var ruleError = ruleValidation(rule, param);
