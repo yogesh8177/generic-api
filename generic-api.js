@@ -69,37 +69,10 @@ var self = module.exports.Resource = {
 
 	requestHandler: (req, res, next) => {
 		/* Here we can do params validtion based on paramsRulesList object */
-		if(req.params){
-			/* Before validating actual params, validate whether params and rules already exist by  using validateRulesListMisMatch function */
-			var misMatchErrors = self.validateRulesListMisMatch(paramsRulesList);
-			if(errors.length > 0){
-				/* Rules and params mismatch happened */
-				return res.json(errors);
-			}
-
-			var paramsRulesErrors = self.validateParams(req.params);
-			if(paramsRulesErrors.length > 0){
-				return res.json(paramsRulesErrors);
-			}
-
-			/* If parameter vaidation passes, do something below  like db access*/
-			var action = '';
-			switch(req.method.toLowerCase()){
-				case 'get':
-					
-				break;
-
-				case 'post':
-					action = postDBActions[req.body.action];
-				break;
-
-				case 'put':
-					action = putDBActions[req.body.action];
-				break;
-			}
-
-			/* Do Database calls, this logic needs more deep thinking, will do it in the next sitting*/
-
+		if(req.params){			
+			requestHandlerWithQueryParams(req, res, next);
+		}else{
+			requestHandlerWithoutQueryParams(req, res, next);
 		}
 	},
 
@@ -128,6 +101,66 @@ function ruleValidation(rule, param){
 	return error;
 }
 
+function requestHandlerWithQueryParams(req, res, next){
+	/* Before validating actual params, validate whether params and rules already exist by  using validateRulesListMisMatch function */
+			var misMatchErrors = self.validateRulesListMisMatch(paramsRulesList);
+			if(errors.length > 0){
+				/* Rules and params mismatch happened */
+				return res.json(errors);
+			}
+
+			var paramsRulesErrors = self.validateParams(req.params);
+			if(paramsRulesErrors.length > 0){
+				return res.json(paramsRulesErrors);
+			}
+
+			/* If parameter vaidation passes, do something below  like db access*/
+			var action = '';
+			var args = {};
+			switch(req.method.toLowerCase()){
+				case 'get':
+					args.params = req.params;
+					getWithParams(args, db, (err, success) => {
+						if(err)
+							return next(err);
+						return res.json(success);
+					});
+				break;
+
+				case 'post':
+					updateWithParams(args, db, (err, success) => {
+						if(err)
+							return next(err);
+						return res.json(success);
+					});
+				break;
+
+				case 'put':
+					//action = putDBActions[req.body.action];
+				break;
+			}
+}
+
+function requestHandlerWithoutQueryParams(req, res, next){
+
+	var args = {};
+	args.body = req.body;
+
+	switch(req.method.toLowerCase()){
+		case 'put':
+			createResource(args, db, (err, success) => {
+				if(err)
+					return next(err);
+				return res.json(success);
+			});
+		break;
+
+		default:
+
+		break;
+	}
+}
+
 /* Database calls */
 
 function getWithoutParams(args, db, callback){
@@ -144,6 +177,27 @@ function getWithParams(args, db, callback){
 		callback(null, success);
 	});
 	connsole.log(query);
+}
+
+// call update query on post method matching req.params
+function updateWithParams(args, db, callback){
+	var query = createQuery(args.params);
+	db[model].update(query, (err, success) => {
+		if(err)
+			return callback(err);
+		callback(null, success);
+	});
+}
+
+// Create a new resource on PUT request!
+function createResource(args, db, callback){
+
+	var resource = args.body || {};
+	db[model].create(resource, (err, success) => {
+		if(err)
+			return callback(err);
+		callback(null, success);
+	})
 }
 
 function createQuery(params, operator){
