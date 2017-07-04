@@ -7,9 +7,9 @@ var paths = [];
 var paramsList = [];
 var paramsRulesList = {};
 var model = null;
-var getDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
-var postDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
-var putDBActions = ['create'];
+// var getDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
+// var postDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
+// var putDBActions = ['create'];
 
 var self = module.exports.Resource = {
 
@@ -30,10 +30,10 @@ var self = module.exports.Resource = {
 	registerRoutes: (app, _path, _paramsList) => {
 
 		paramsList = _paramsList;
-		paths.push(_path); // Add default path
+		/*paths.push(_path); // Add default path
 		_paramsList.forEach((param, index) => {
 			paths.push(_path + '/' + param + '/:' + param);
-		});
+		});*/
 
 		methodsList.forEach((method) => {
 			//for(var i = 0; i < paths.length; i++){
@@ -83,7 +83,12 @@ var self = module.exports.Resource = {
 	requestHandler: (req, res, next) => {
 		/* Here we can do params validation based on paramsRulesList object */
 		//return res.json(req.url);
-		if(Object.keys(req.query).length !== 0 ){			
+		/* need  to clean below section */
+		req.page = req.query.page;
+		req.sort = req.query.sort;
+		delete req.query.page;
+		delete req.query.sort;
+		if(Object.keys(req.query).length !== 0){			
 			requestHandlerWithQueryParams(req, res, next);
 		}else{
 			requestHandlerWithoutQueryParams(req, res, next);
@@ -101,7 +106,7 @@ function ruleValidation(rule, param){
 	switch(ruleName){
 		case 'length':
 			error = param.length > rule.max ? param +'length exceeds its limit of '+ rule.max : '';
-			error = param.length < rule.min ? param +'length must be atleast '+rule.min : ''
+			error = param.length < rule.min ? param +'length must be atleast '+rule.min : '';
 		break;
 
 		case 'type':
@@ -131,9 +136,12 @@ function requestHandlerWithQueryParams(req, res, next){
 
 			/* If parameter vaidation passes, do something below  like db access*/
 			var args = {};
+			args.operator = req.query.operator;
+			args.page = req.query.page;
+			delete req.query.page;
+			delete req.query['operator']; // Have to do this as everything is being handled by querystring
 			args.params = req.query;
 			args.body = req.body;
-			args.operator = req.query.operator;
 
 			switch(req.method.toLowerCase()){
 				case 'get':
@@ -168,8 +176,8 @@ function requestHandlerWithoutQueryParams(req, res, next){
 
 	var args = {};
 	args.body = req.body;
-	args.page = req.body.page || req.query.page;
-	args.sortBy = req.body.sort || req.query.sort;
+	args.page = req.body.page || req.page;
+	args.sortBy = req.body.sort || req.sort;
 
 	switch(req.method.toLowerCase()){
 
@@ -213,8 +221,11 @@ function getWithoutParams(args, db, callback){
 
 // This function is called when there is already atleast single key in object
 function getWithParams(args, db, callback){
-	var query = createQuery(args.params);
+
+	var query = createQuery(args.params, args.operator);
 	var call = Object.keys(args.params).length > 1 ? 'find' : 'findOne';
+	var page = args.page || 0;
+
 	db[model][call](query, (err, success) => {
 		if(err)
 			return callback(err);
@@ -237,6 +248,7 @@ function updateWithParams(args, db, callback){
 function createResource(args, db, callback){
 
 	var resource = args.body || {};
+	console.log(resource);
 	db[model].create(resource, (err, success) => {
 		if(err)
 			return callback(err);
@@ -260,7 +272,7 @@ function createQuery(params, operator){
 	/* If we have more than one param*/
 	var query = {};
 	var totalKeys = Object.keys(params).length;
-
+	console.log(params);
 	if(totalKeys > 1){	
 		switch(operator){
 			case 'and':
@@ -280,7 +292,7 @@ function createQuery(params, operator){
 			break;
 
 			default:
-
+				console.log(operator);
 			break;
 		}
 	}else{
