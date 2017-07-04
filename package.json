@@ -1,0 +1,35 @@
+{
+  "name": "generic-api",
+  "version": "1.0.0",
+  "description": "One API handler for all your resources",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/yogeshb/generic-api.git"
+  },
+  "keywords": [
+    "api",
+    "nodejs",
+    "mongodb",
+    "mongoose"
+  ],
+  "author": "Yogesh R. Jadhav",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/yogeshb/generic-api/issues"
+  },
+  "homepage": "https://gitlab.com/yogeshb/generic-api#README",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.3",
+    "ejs": "^2.5.6",
+    "express": "^4.15.3",
+    "express-session": "^1.15.3",
+    "mongoose": "^4.11.1"
+  }
+}
