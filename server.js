@@ -34,6 +34,7 @@ app.db.once('open', function () {
 models(app, mongoose);
 
 genericAPI.model('User');
+genericAPI.enableModifiers(true);
 genericAPI.methods(['get', 'post', 'put']);
 genericAPI.registerRoutes(app, '/user', ['_id', 'email', 'name']);
 genericAPI.setParamRulesList({

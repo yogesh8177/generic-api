@@ -7,7 +7,9 @@ var methodsList = [];
 var paths = [];
 var paramsList = [];
 var paramsRulesList = {};
+var modifiersList = {};
 var model = null;
+var modifiers = false;
 // var getDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
 // var postDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
 // var putDBActions = ['create'];
@@ -17,6 +19,10 @@ var self = module.exports.Resource = {
 	/* Text name of the model: @_model */
 	model: (_model) => {
 		model = _model;
+	},
+
+	enableModifiers: (_set) => {
+		modifiers = _set;
 	},
 
 	methods: (_methodsList) => {
@@ -84,6 +90,8 @@ var self = module.exports.Resource = {
 		return errors;	
 	},
 
+
+
 	requestHandler: (req, res, next) => {
 		/* Here we can do params validation based on paramsRulesList object */
 		//return res.json(req.url);
@@ -122,11 +130,6 @@ function ruleValidation(rule, param, value){
 			var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 			if(!(re.test(value)))
 				error = 'Invalid email parameter: '+param;
-		break;
-
-		case 'slugify':
-			value = slugify(value);
-			console.log('slugified: ' + value);
 		break;
 
 		default:
@@ -195,6 +198,7 @@ function requestHandlerWithoutQueryParams(req, res, next){
 	args.body = req.body;
 	args.page = req.body.page || req.page;
 	args.sortBy = req.body.sort || req.sort;
+
 
 	switch(req.method.toLowerCase()){
 
@@ -275,6 +279,8 @@ function updateWithParams(args, db, callback){
 function createResource(args, db, callback){
 
 	var resource = args.body || {};
+	if(modifiers)
+		applyModifiers(resource);
 	console.log(resource);
 	db[model].create(resource, (err, success) => {
 		if(err)
@@ -335,6 +341,20 @@ function createQuery(params, operator){
 	}
 	return query;
 	console.log(JSON.stringify(query));
+}
+
+function applyModifiers(resource){
+	for(var key in resource){
+		switch(key){
+			case 'slug':
+				resource[key] = slugify(resource[key]).toLowerCase();
+			break;
+
+			default:
+
+			break;
+		}
+	}
 }
 
 
