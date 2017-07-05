@@ -33,11 +33,13 @@ app.db.once('open', function () {
 
 models(app, mongoose);
 
-genericAPI.model('User');
-genericAPI.enableModifiers(true);
-genericAPI.methods(['get', 'post', 'put']);
-genericAPI.registerRoutes(app, '/user', ['_id', 'email', 'name']);
-genericAPI.setParamRulesList({
+var user = new genericAPI();
+
+user.model('User');
+user.enableModifiers(true);
+user.methods(['get', 'post', 'put']);
+user.registerRoutes(app, '/user', ['_id', 'email', 'name']);
+user.setParamRulesList({
 								name: {
 									rules: [{name: 'length', max: 3, min: 1}, {name: 'slugify'}]
 								},
