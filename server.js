@@ -36,11 +36,18 @@ models(app, mongoose);
 genericAPI.model('User');
 genericAPI.methods(['get', 'post', 'put']);
 genericAPI.registerRoutes(app, '/user', ['_id', 'email', 'name']);
-genericAPI.setParamRulesList({_id: {rules: [{name: 'length', max: 3, min: 1}]}})
+genericAPI.setParamRulesList({
+								name: {
+									rules: [{name: 'length', max: 3, min: 1}, {name: 'slugify'}]
+								},
+								email: {
+									rules: [{name: 'email'}]
+								}
+							});
 
 app.listen(3005);
 
-app.use(errorHandler)
+app.use(errorHandler);
 // Main error handler
 function errorHandler (err, req, res, next) {
   if (res.headersSent) {

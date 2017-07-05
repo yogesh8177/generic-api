@@ -1,6 +1,7 @@
 var db = require('./db'); //Imaginary database....
 var constants = require('./constants');
 var mongoose = require('mongoose');
+var slugify = require('slugify');
 
 var methodsList = [];
 var paths = [];
@@ -64,19 +65,22 @@ var self = module.exports.Resource = {
 		return errors;
 	},
 	
-	validateParams: (params) => {
+	validateParams: (query, params) => {
 		var errors = [];
-
-		for(var param in params){
-			var rules = paramsRulesList[param].rules; // change access method depending upon data structure of paramsRulesList
+		console.log('Validating params');
+		console.log(params);
+		params.forEach(function(param, index){
+			var rules = paramsRulesList[param] !== undefined ? paramsRulesList[param].rules : []; // change access method depending upon data structure of paramsRulesList
 
 			rules.forEach((rule) => {
-				var ruleError = ruleValidation(rule, param);
+
+				var ruleError = ruleValidation(rule, param, query[param]);
+				console.log(ruleError);
 				if(ruleError !== ''){
 					errors.push(ruleError);
 				}
 			});			
-		}	
+		});	
 		return errors;	
 	},
 
@@ -84,10 +88,11 @@ var self = module.exports.Resource = {
 		/* Here we can do params validation based on paramsRulesList object */
 		//return res.json(req.url);
 		/* need  to clean below section */
-		req.page = req.query.page;
+		cleanQueryStrings(req);
+		/*req.page = req.query.page;
 		req.sort = req.query.sort;
 		delete req.query.page;
-		delete req.query.sort;
+		delete req.query.sort;*/
 		if(Object.keys(req.query).length !== 0){			
 			requestHandlerWithQueryParams(req, res, next);
 		}else{
@@ -98,19 +103,30 @@ var self = module.exports.Resource = {
 }
 
 /* validate param here using regex or any other methods */
-function ruleValidation(rule, param){
+function ruleValidation(rule, param, value){
 
 	var error = '';
 	var ruleName = rule.name;
+	console.log('validating rule: '+rule.name + ' for param: ' + param);
 
 	switch(ruleName){
 		case 'length':
-			error = param.length > rule.max ? param +'length exceeds its limit of '+ rule.max : '';
-			error = param.length < rule.min ? param +'length must be atleast '+rule.min : '';
+			//console.log('validating: '+ ruleName + value.length);
+			if(value.length > rule.max)
+				error = 'Length exceeded for param: ' + param;
+			else if(value.length < rule.min)
+				error = 'Length should be atleast: '+rule.min + ' for param: '+param;
 		break;
 
-		case 'type':
+		case 'email':
+			var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+			if(!(re.test(value)))
+				error = 'Invalid email parameter: '+param;
+		break;
 
+		case 'slugify':
+			value = slugify(value);
+			console.log('slugified: ' + value);
 		break;
 
 		default:
@@ -129,17 +145,17 @@ function requestHandlerWithQueryParams(req, res, next){
 				return res.json(misMatchErrors);
 			}
 
-			var paramsRulesErrors = self.validateParams(req.params);
+			var paramsRulesErrors = self.validateParams(req.query, Object.keys(req.query));
 			if(paramsRulesErrors.length > 0){
 				return res.json(paramsRulesErrors);
 			}
 
 			/* If parameter vaidation passes, do something below  like db access*/
 			var args = {};
-			args.operator = req.query.operator;
+			args.operator = req.operator;
 			args.page = req.page;
 			args.sort = req.page;
-			delete req.query['operator']; // Have to do this as everything is being handled by querystring
+			//delete req.query['operator']; // Have to do this as everything is being handled by querystring
 			args.params = req.query;
 			args.body = req.body;
 
@@ -204,6 +220,15 @@ function requestHandlerWithoutQueryParams(req, res, next){
 
 		break;
 	}
+}
+
+function cleanQueryStrings(req){
+	req.page = req.query.page;
+	req.sort = req.query.sort;
+	req.operator = req.query.operator;
+	delete req.query.page;
+	delete req.query.sort;
+	delete req.query.operator;
 }
 
 /* Database calls */
