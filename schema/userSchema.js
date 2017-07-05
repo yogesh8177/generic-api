@@ -10,7 +10,7 @@ module.exports = function(app, mongoose) {
 
     //Pre save function for updatedAt
 
-    //userSchema.plugin(require('./plugins/pagedFind'));
+    userSchema.plugin(require('./plugins/pagedFind'));
     userSchema.index({ _id: 1 });
     userSchema.set('autoIndex', (app.get('env') === 'development'));
     app.db.User = mongoose.model('User', userSchema);

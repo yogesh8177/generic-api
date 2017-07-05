@@ -137,8 +137,8 @@ function requestHandlerWithQueryParams(req, res, next){
 			/* If parameter vaidation passes, do something below  like db access*/
 			var args = {};
 			args.operator = req.query.operator;
-			args.page = req.query.page;
-			delete req.query.page;
+			args.page = req.page;
+			args.sort = req.page;
 			delete req.query['operator']; // Have to do this as everything is being handled by querystring
 			args.params = req.query;
 			args.body = req.body;
@@ -146,6 +146,7 @@ function requestHandlerWithQueryParams(req, res, next){
 			switch(req.method.toLowerCase()){
 				case 'get':
 					console.log('GET query with params');
+					console.log(args);
 					getWithParams(args, req.app.db, (err, success) => {
 						if(err)
 							return next(err);
@@ -212,10 +213,10 @@ function getWithoutParams(args, db, callback){
 	var page = args.page || 0; 
 	var sortBy = args.sortBy || 'createdAt';
 	/* Use sort for performance gains in this query */
-	db[model].find({}).sort(sortBy).skip(page * constants.PAGE_SIZE).limit(constants.PAGE_SIZE).exec((err, result) => {
+	db[model].pagedFind({filters:{}, page: page, limit: constants.PAGE_SIZE, sort: {[sortBy]: 1}}, (err, data) => {
 		if(err)
 			return callback(err);
-		return callback(null, result);
+		return callback(null, data);
 	});
 }
 
@@ -223,10 +224,11 @@ function getWithoutParams(args, db, callback){
 function getWithParams(args, db, callback){
 
 	var query = createQuery(args.params, args.operator);
-	var call = Object.keys(args.params).length > 1 ? 'find' : 'findOne';
+	//var call = Object.keys(args.params).length > 1 ? 'find' : 'findOne';
 	var page = args.page || 0;
+	var sortBy = args.sort || 'createdAt';
 
-	db[model][call](query, (err, success) => {
+	db[model]['pagedFind']({ filters: query, page: page, limit: constants.PAGE_SIZE, sort: {[sortBy]: 1} }, (err, success) => {
 		if(err)
 			return callback(err);
 		callback(null, success);
