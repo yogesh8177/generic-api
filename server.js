@@ -36,7 +36,7 @@ models(app, mongoose);
 var user = new genericAPI();
 
 user.model('User');
-user.enableModifiers(true);
+user.enableModifiers(true, {slug: ['slugify']});
 user.methods(['get', 'post', 'put']);
 user.registerRoutes(app, '/user', ['_id', 'email', 'name']);
 user.setParamRulesList({

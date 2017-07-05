@@ -10,6 +10,7 @@ var paramsRulesList = {};
 var modifiersList = {};
 var model = null;
 var modifiers = false;
+var modifierRules = {};
 // var getDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
 // var postDBActions = ['find', 'findById', 'update', 'create', 'findByIdAndUpdate'];
 // var putDBActions = ['create'];
@@ -21,8 +22,9 @@ var self = module.exports.Resource = function(){
 		model = _model;
 	},
 
-	this.enableModifiers = (_set) => {
+	this.enableModifiers = (_set, rules) => {
 		modifiers = _set;
+		modifierRules = rules;
 	},
 
 	this.methods = (_methodsList) => {
@@ -275,8 +277,9 @@ var self = module.exports.Resource = function(){
 		this.createResource = (args, db, callback) => {
 
 			var resource = args.body || {};
+
 			if(modifiers)
-				this.applyModifiers(resource);
+				this.applyModifiers(resource, modifierRules);
 			console.log(resource);
 			db[model].create(resource, (err, success) => {
 				if(err)
@@ -338,18 +341,30 @@ var self = module.exports.Resource = function(){
 			console.log(JSON.stringify(query));
 		},
 
-		this.applyModifiers = (resource) => {
+		this.applyModifiers = (resource, rules) => {
+			console.log('applying modifiers');
+			//console.log(rules);
 			for(var key in resource){
-				switch(key){
-					case 'slug':
-						resource[key] = slugify(resource[key]).toLowerCase();
-					break;
 
-					default:
+				var rulesArray = rules[key] !== undefined ? rules[key] : [];
 
-					break;
-				}
-			}
+				rulesArray.forEach((rule, index) => {
+					switch(rule){
+						case 'slugify':
+							console.log('slugifying');
+							resource[key] = slugify(resource[key]).toLowerCase();
+						break;
+
+						case 'uppercase':
+							resource[key] = resource[key].toUpperCase();
+						break;
+						default:
+
+						break;
+					}
+				});
+				
+			}// outer loop ends
 		}
 
 }
