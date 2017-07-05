@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const cors = require('cors');
+var constants = require('./constants');
 var genericAPI = require('./generic-api').Resource;
 
 const app = express();
@@ -34,9 +35,10 @@ app.db.once('open', function () {
 models(app, mongoose);
 
 var user = new genericAPI();
+user.init(app, constants.DEMO_CONFIG)
 
-user.model('User');
-user.enableModifiers(true, {slug: ['slugify']});
+/*user.model('User');
+user.enableModifiers(true, {slug: ['slugify','uppercase']});
 user.methods(['get', 'post', 'put']);
 user.registerRoutes(app, '/user', ['_id', 'email', 'name']);
 user.setParamRulesList({
@@ -46,7 +48,7 @@ user.setParamRulesList({
 								email: {
 									rules: [{name: 'email'}]
 								}
-							});
+							});*/
 
 app.listen(3005);
 

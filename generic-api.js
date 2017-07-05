@@ -18,6 +18,14 @@ var modifierRules = {};
 var self = module.exports.Resource = function(){
 
 	/* Text name of the model: @_model */
+	this.init = (app, config) => {
+		this.model(config.model);
+		this.enableModifiers(config.enableModifiers, config.modifierRules);
+		this.methods(config.methods);
+		this.registerRoutes(app, config.path, config.paramsArray);
+		this.setParamRulesList(config.paramsRulesList);
+	},
+
 	this.model = (_model) => {
 		model = _model;
 	},
