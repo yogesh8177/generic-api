@@ -41,7 +41,7 @@ user.methods(['get', 'post', 'put']);
 user.registerRoutes(app, '/user', ['_id', 'email', 'name']);
 user.setParamRulesList({
 								name: {
-									rules: [{name: 'length', max: 3, min: 1}, {name: 'slugify'}]
+									rules: [{name: 'length', max: 3, min: 1}]
 								},
 								email: {
 									rules: [{name: 'email'}]
