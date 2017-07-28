@@ -3,17 +3,17 @@ module.exports = {
 	DEMO_CONFIG: {
 		model: 'User',
 		enableModifiers: true,
-		modifierRules: {slug: ['slugify','uppercase']},
+		modifierRules: { slug: ['slugify', 'uppercase'] },
 		methods: ['get', 'post', 'put'],
 		path: '/user',
 		paramsArray: ['id', 'email', 'name'],
 		paramsRulesList: {
-							name: {
-								rules: [{name: 'length', max: 3, min: 2}]
-							},
-							email: {
-								rules: [{name: 'email'}]
-							}
-						}
+			name: {
+				rules: [{ name: 'length', max: 3, min: 2 }]
+			},
+			email: {
+				rules: [{ name: 'email' }]
+			}
+		}
 	}
 }
