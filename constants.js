@@ -6,10 +6,10 @@ module.exports = {
 		modifierRules: {slug: ['slugify','uppercase']},
 		methods: ['get', 'post', 'put'],
 		path: '/user',
-		paramsArray: ['_id', 'email', 'name'],
+		paramsArray: ['id', 'email', 'name'],
 		paramsRulesList: {
 							name: {
-								rules: [{name: 'length', max: 3, min: 1}]
+								rules: [{name: 'length', max: 3, min: 2}]
 							},
 							email: {
 								rules: [{name: 'email'}]
